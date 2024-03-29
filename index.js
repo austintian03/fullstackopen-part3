@@ -1,7 +1,7 @@
 const express = require('express')
-const app = express()
+const morgan = require('morgan')
 
-app.use(express.json())
+const app = express()
 
 let phonebook = [
   { 
@@ -26,6 +26,9 @@ let phonebook = [
   }
 ]
 
+app.use(express.json())
+app.use(morgan('tiny'))
+
 app.get('/info', (req, res) => {
   const timestamp = `<p>${Date()}</p>`
   const info = `<p>Phonebook has info for ${phonebook.length} people</p>`
@@ -45,11 +48,11 @@ app.post('/api/persons', (req, res) => {
   const body = req.body
   
   if(!body.name || !body.number) {
-    res.status(400).send({ error: 'name or number is missing, please provide both' })
+    return res.status(400).json({ error: 'name or number is missing, please provide both' })
   }
 
   if(phonebook.find(person => person.name === body.name)) {
-    res.status(400).send({ error: 'name must be unique' })
+    return res.status(400).json({ error: 'name must be unique' })
   }
 
   const person = {
