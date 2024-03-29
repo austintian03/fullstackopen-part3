@@ -44,6 +44,14 @@ const generateId = () => {
 app.post('/api/persons', (req, res) => {
   const body = req.body
   
+  if(!body.name || !body.number) {
+    res.status(400).send({ error: 'name or number is missing, please provide both' })
+  }
+
+  if(phonebook.find(person => person.name === body.name)) {
+    res.status(400).send({ error: 'name must be unique' })
+  }
+
   const person = {
     "name": body.name,
     "number": body.number,
