@@ -2,8 +2,10 @@ const express = require('express')
 const morgan = require('morgan')
 
 morgan.token('data', (req, res) => {
-  if (req.method === "POST") {
-    return JSON.stringify(req.body)
+  const data = JSON.stringify(req.body)
+  
+  if (data !== '{}') {
+    return data
   }
 })
 
@@ -33,6 +35,7 @@ let phonebook = [
 ]
 
 app.use(express.json())
+app.use(express.static('dist'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
 app.get('/info', (req, res) => {
@@ -84,12 +87,17 @@ app.get('/api/persons/:id', (req, res) => {
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id)
+  const deletedPerson = phonebook.find(person => person.id === id)
   phonebook = phonebook.filter(person => person.id !== id)
   
-  res.status(204).end()
+  if (deletedPerson) {
+    res.json(deletedPerson)
+  } else {
+    response.status(204).end()
+  }
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
