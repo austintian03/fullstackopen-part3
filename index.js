@@ -3,6 +3,11 @@ const express = require('express')
 const morgan = require('morgan')
 const Person = require('./models/person')
 
+const app = express()
+
+app.use(express.json())
+app.use(express.static('dist'))
+
 morgan.token('data', (req, res) => {
   const data = JSON.stringify(req.body)
   
@@ -10,11 +15,6 @@ morgan.token('data', (req, res) => {
     return data
   }
 })
-
-const app = express()
-
-app.use(express.json())
-app.use(express.static('dist'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
 app.get('/info', (req, res, next) => {
@@ -35,7 +35,7 @@ app.get('/api/persons', (req, res) => {
     })
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body
   
   if(!body.name || !body.number) {
@@ -47,9 +47,11 @@ app.post('/api/persons', (req, res) => {
     "number": body.number,
   })
 
-  person.save().then(savedPerson => {
-    res.json(savedPerson)
-  })
+  person.save()
+    .then(savedPerson => {
+      res.json(savedPerson)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -64,7 +66,7 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.put('/api/persons/:id', (req, res) => {
+app.put('/api/persons/:id', (req, res, next) => {
   const body = req.body
 
   const person = {
@@ -72,7 +74,11 @@ app.put('/api/persons/:id', (req, res) => {
     number: body.number,
   }
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(
+    req.params.id, 
+    person, 
+    { new: true, runValidators: true }
+  )
     .then(updatedPerson => {
       res.json(updatedPerson)
     })
@@ -88,11 +94,14 @@ app.delete('/api/persons/:id', (req, res, next) => {
 })
 
 const errorHandler = (error, req, res, next) => {
+  console.log()
   console.error(error.message)
 
   if (error.name === 'CastError') {
     return res.status(400).send({ error: 'Malformed ID' })
-  } 
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
