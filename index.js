@@ -42,7 +42,7 @@ app.post('/api/persons', (req, res) => {
     return res.status(400).json({ error: 'name must be unique' })
   }
   */
- 
+
   const person = new Person({
     "name": body.name,
     "number": body.number,
@@ -65,15 +65,14 @@ app.get('/api/persons/:id', (req, res) => {
 })
 
 app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const deletedPerson = phonebook.find(person => person.id === id)
-  phonebook = phonebook.filter(person => person.id !== id)
-  
-  if (deletedPerson) {
-    res.json(deletedPerson)
-  } else {
-    response.status(204).end()
-  }
+  Person.findByIdAndDelete(req.params.id)
+    .then(result => {
+      res.status(204).end()
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(400).send({ error: 'Malformed ID' })
+    })
 })
 
 const PORT = process.env.PORT
