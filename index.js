@@ -10,7 +10,7 @@ app.use(express.static('dist'))
 
 morgan.token('data', (req, res) => {
   const data = JSON.stringify(req.body)
-  
+
   if (data !== '{}') {
     return data
   }
@@ -23,7 +23,7 @@ app.get('/info', (req, res, next) => {
       const timestamp = `<p>${Date()}</p>`
       const info = `<p>Phonebook has info for ${count} people</p>`
 
-      res.send(info.concat(" ", timestamp))
+      res.send(info.concat(' ', timestamp))
     })
     .catch(error => next(error))
 })
@@ -37,14 +37,14 @@ app.get('/api/persons', (req, res) => {
 
 app.post('/api/persons', (req, res, next) => {
   const body = req.body
-  
-  if(!body.name || !body.number) {
+
+  if (!body.name || !body.number) {
     return res.status(400).json({ error: 'name or number is missing, please provide both' })
   }
 
   const person = new Person({
-    "name": body.name,
-    "number": body.number,
+    name: body.name,
+    number: body.number
   })
 
   person.save()
@@ -71,12 +71,12 @@ app.put('/api/persons/:id', (req, res, next) => {
 
   const person = {
     name: body.name,
-    number: body.number,
+    number: body.number
   }
 
   Person.findByIdAndUpdate(
-    req.params.id, 
-    person, 
+    req.params.id,
+    person,
     { new: true, runValidators: true }
   )
     .then(updatedPerson => {
@@ -87,7 +87,7 @@ app.put('/api/persons/:id', (req, res, next) => {
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
-    .then(result => {
+    .then(() => {
       res.status(204).end()
     })
     .catch(error => next(error))
